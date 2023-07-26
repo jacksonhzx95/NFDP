@@ -8,8 +8,8 @@ DATASET:
       ROT_FACTOR: 30
       SCALE_FACTOR: 0.3
       SHIFT_FACTOR:
-        - 0.00
-        - 0.0
+        - 0.15
+        - 0.15
   VAL:
     TYPE: 'Scoliosis_X_ray'
     ROOT: '/home/jackson/Documents/Project_BME/Datasets/scoliosis/xray/boostnet_labeldata/'
@@ -51,9 +51,5 @@ TRAIN:
   BEGIN_EPOCH: 0
   END_EPOCH: 300
   OPTIMIZER: 'adam'
-  LR: 0.0008
-  LR_FACTOR: 0.3
-  LR_STEP:
-  - 200
-  - 600
-  - 800
+  LR: 0.001
+  END_FACTOR: 0.001
