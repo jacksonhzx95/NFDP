@@ -9,7 +9,7 @@ from scipy.io import loadmat
 import numpy as np
 from torch.utils.data import DataLoader
 from nfdp.models.builder import DATASET
-from nfdp.utils.presets import SimpleTransform, ScoliosisTransform
+from nfdp.utils.presets import SimpleTransform, Transform
 
 
 def update_config(config_file):
@@ -43,65 +43,20 @@ def load_gt_pts(annopath):
     pts = rearrange_pts(pts)
     return pts
 
-'''def _check_load_keypoints(self, coco, entry):
 
-            if self._check_centers and self._train:
-                bbox_center, bbox_area = self._get_box_center_area((xmin, ymin, xmax, ymax))
-                kp_center, num_vis = self._get_keypoints_center_count(joints_3d)
-                ks = np.exp(-2 * np.sum(np.square(bbox_center - kp_center)) / bbox_area)
-                if (num_vis / 80.0 + 47 / 80.0) > ks:
-                    continue
-
-'''
-
-
-def scoliosis_pts_process(pts):
-    joints_3d = np.zeros((len(pts), 2, 2), dtype=np.float32)
+def spine_pts_process(pts):
+    joints_ed = np.zeros((len(pts), 2, 2), dtype=np.float32)
     for i in range(len(pts)):
-        joints_3d[i, 0, 0] = pts[i][0]
-        joints_3d[i, 1, 0] = pts[i][1]
-        joints_3d[i, :2, 1] = 1
-    return joints_3d
+        joints_ed[i, 0, 0] = pts[i][0]
+        joints_ed[i, 1, 0] = pts[i][1]
+        joints_ed[i, :2, 1] = 1
+    return joints_ed
 
 
 @DATASET.register_module
-class Scoliosis_X_ray(data.Dataset):
+class Spine_X_ray(data.Dataset):
     CLASSES = ['spine']
-    EVAL_JOINTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-                   10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                   20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-                   30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
-                   40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
-                   50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
-                   60, 61, 62, 63, 64, 65, 66, 67]
     num_joints = 68
-    joint_pairs = [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9],
-                   [10, 11], [12, 13], [14, 15], [16, 17], [18, 19],
-                   [20, 21], [22, 23], [24, 25], [26, 27], [28, 29],
-                   [30, 31], [32, 33], [34, 35], [36, 37], [38, 39],
-                   [40, 41], [42, 43], [44, 45], [46, 47], [48, 49],
-                   [50, 51], [52, 53], [54, 55], [56, 57], [58, 59],
-                   [60, 61], [62, 63], [64, 65], [66, 67]
-                   ]
-    joints_name = (
-        'T1_LU', 'T1_RU', 'T1_LD', 'T1_RD',
-        'T2_LU', 'T2_RU', 'T2_LD', 'T2_RD',
-        'T3_LU', 'T3_RU', 'T3_LD', 'T3_RD',
-        'T4_LU', 'T4_RU', 'T4_LD', 'T4_RD',
-        'T5_LU', 'T5_RU', 'T5_LD', 'T5_RD',
-        'T6_LU', 'T6_RU', 'T6_LD', 'T6_RD',
-        'T7_LU', 'T7_RU', 'T7_LD', 'T7_RD',
-        'T8_LU', 'T8_RU', 'T8_LD', 'T8_RD',
-        'T9_LU', 'T9_RU', 'T9_LD', 'T9_RD',
-        'T10_LU', 'T10_RU', 'T10_LD', 'T10_RD',
-        'T11_LU', 'T11_RU', 'T11_LD', 'T11_RD',
-        'T12_LU', 'T12_RU', 'T12_LD', 'T12_RD',
-        'L1_LU', 'L1_RU', 'L1_LD', 'L1_RD',
-        'L2_LU', 'L2_RU', 'L2_LD', 'L2_RD',
-        'L3_LU', 'L3_RU', 'L3_LD', 'L3_RD',
-        'L4_LU', 'L4_RU', 'L4_LD', 'L4_RD',
-        'L5_LU', 'L5_RU', 'L5_LD', 'L5_RD',
-    )
 
     def __init__(self,
                  train=True,
@@ -123,17 +78,11 @@ class Scoliosis_X_ray(data.Dataset):
         if 'AUG' in cfg.keys():
             self._scale_factor = cfg['AUG']['SCALE_FACTOR']
             self._rot = cfg['AUG']['ROT_FACTOR']
-            self.flip = cfg['AUG']['FLIP']
             self._shift = cfg['AUG']['SHIFT_FACTOR']
-            self.num_joints_half_body = cfg['AUG']['NUM_JOINTS_HALF_BODY']
-            self.prob_half_body = cfg['AUG']['PROB_HALF_BODY']
         else:
             self._scale_factor = 0
             self._rot = 0
-            self.num_joints_half_body = -1
-            self.prob_half_body = -1
             self._shift = (0, 0)
-            self.flip = False
 
         self._input_size = self._preset_cfg['IMAGE_SIZE']
         self._output_size = self._preset_cfg['HEATMAP_SIZE']
@@ -146,27 +95,11 @@ class Scoliosis_X_ray(data.Dataset):
         self._loss_type = None
         # self._loss_type = cfg['heatmap2coord']
 
-        self.upper_body_ids = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-                               10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                               20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-                               30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
-                               40, 41, 42, 43, 44, 45, 46, 47)
-        self.lower_body_ids = (48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
-                               58, 59, 60, 61, 62, 63, 64, 65, 66, 67)
-
-        if self._preset_cfg['TYPE'] == 'simple':
-            self.transformation = SimpleTransform(
+        if self._preset_cfg['TYPE'] == 'spine':
+            self.transformation = Transform(
                 self, scale_factor=self._scale_factor,
                 input_size=self._input_size,
                 output_size=self._output_size,
-                rot=self._rot, sigma=self._sigma,
-                train=self._train, loss_type=self._loss_type)
-        elif self._preset_cfg['TYPE'] == 'scoliosis':
-            self.transformation = ScoliosisTransform(
-                self, scale_factor=self._scale_factor,
-                input_size=self._input_size,
-                output_size=self._output_size,
-                flip=self.flip,
                 rot=self._rot, sigma=self._sigma,
                 train=self._train, loss_type=self._loss_type, shift=self._shift)
         else:
@@ -201,7 +134,7 @@ class Scoliosis_X_ray(data.Dataset):
         img_id = self.img_ids[index]
         annoFolder = self.load_annoFolder(img_id)
         pts = load_gt_pts(annoFolder)
-        pts_3d = scoliosis_pts_process(pts)
+        pts_3d = spine_pts_process(pts)
         return pts_3d
 
     def __getitem__(self, index):
@@ -258,10 +191,10 @@ if __name__ == '__main__':
     cfg_file_name = '/home/jackson/Documents/Project_BME/Python_code/NF/res-loglikelihood-regression/configs/512_res50_scoliosic_regress.yaml'
     cfg = update_config(cfg_file_name)
     # print(cfg)
-    train_dataset = Scoliosis_X_ray(train=True,
-                                    skip_empty=True,
-                                    lazy_import=False,
-                                    cfg=cfg)
+    train_dataset = Spine_X_ray(train=True,
+                                skip_empty=True,
+                                lazy_import=False,
+                                cfg=cfg)
 
     train_loader = DataLoader(
         dataset=train_dataset,

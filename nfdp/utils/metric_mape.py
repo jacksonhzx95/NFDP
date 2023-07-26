@@ -6,7 +6,7 @@ from scipy.io import loadmat
 import numpy as np
 from nfdp.utils.transforms import transform_preds, get_affine_transform, affine_transform
 from nfdp.utils import cobb_evaluate
-from nfdp.utils.bbox import get_center_scale
+from nfdp.utils.util import get_center_scale
 from nfdp.utils.landmark_statistics import LandmarkStatistics
 
 

@@ -6,7 +6,7 @@ import cv2
 from scipy.io import loadmat
 import numpy as np
 from nfdp.models.builder import DATASET
-from nfdp.utils.presets import SimpleTransform, ScoliosisTransform, CETransform
+from nfdp.utils.presets import SimpleTransform, Transform, CETransform
 import albumentations as A
 
 def update_config(config_file):
@@ -133,7 +133,7 @@ class CE_X_ray(data.Dataset):
                 rot=self._rot, sigma=self._sigma,
                 train=self._train, loss_type=self._loss_type)
         elif self._preset_cfg['TYPE'] == 'scoliosis':
-            self.transformation = ScoliosisTransform(
+            self.transformation = Transform(
                 self, scale_factor=self._scale_factor,
                 input_size=self._input_size,
                 output_size=self._output_size,
