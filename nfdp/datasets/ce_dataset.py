@@ -77,6 +77,7 @@ class CE_X_ray(data.Dataset):
         self._ann_file = os.path.join(self._root, cfg['ANN'][0])
         self._ann_file2 = os.path.join(self._root, cfg['ANN'][1])
         self._preset_cfg = cfg['PRESET']
+        print(self._preset_cfg)
         self._lazy_import = lazy_import
         self._skip_empty = skip_empty
         self._train = train
