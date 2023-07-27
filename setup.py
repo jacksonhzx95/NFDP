@@ -133,11 +133,11 @@ def get_ext_modules():
 
 def get_install_requires():
     install_requires = [
-        'six', 'terminaltables', 'scipy==1.1.0',
+        'six', 'terminaltables', 'scipy',
         'opencv-python', 'matplotlib', 'visdom',
         'tqdm', 'tensorboardx', 'easydict',
         'pyyaml',
-        'torch>=1.1.0', 'torchvision>=0.3.0',
+        'torch>=1.7.0', 'torchvision>=0.8.0',
         'munkres', 'timm==0.1.20', 'natsort'
     ]
     return install_requires
@@ -171,6 +171,8 @@ if __name__ == '__main__':
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9'
         ],
         license='GPLv3',
         python_requires=">=3",
