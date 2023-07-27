@@ -1,0 +1,54 @@
+DATASET:
+  TRAIN:
+    TYPE: 'Spine_X_ray'
+    ROOT: '/home/jackson/Documents/Project_BME/Datasets/scoliosis/xray/boostnet_labeldata/'
+    IMG_PREFIX: 'data/train'
+    ANN: 'labels/train'
+    AUG:
+      ROT_FACTOR: 30
+      SCALE_FACTOR: 0.3
+      SHIFT_FACTOR:
+        - 0.15
+        - 0.15
+  VAL:
+    TYPE: 'Spine_X_ray'
+    ROOT: '/home/jackson/Documents/Project_BME/Datasets/scoliosis/xray/boostnet_labeldata/'
+
+    IMG_PREFIX: 'data/test'
+    ANN: 'labels/test'
+  TEST:
+    TYPE: 'Spine_X_ray'
+    ROOT: '/home/jackson/Documents/Project_BME/Datasets/scoliosis/xray/boostnet_labeldata/'
+    IMG_PREFIX: 'data/test'
+    ANN: 'labels/test'
+DATA_PRESET:
+  TYPE: 'spine'
+  SIGMA: 2
+  NUM_JOINTS: 68
+  IMAGE_SIZE:
+  - 512
+  - 256
+  HEATMAP_SIZE:
+  - 128
+  - 64
+MODEL:
+  TYPE: 'RegressFlow'
+  PRETRAINED:  ''
+  TRY_LOAD: ''
+  NUM_FC_FILTERS:
+  - -1
+  HIDDEN_LIST: -1
+  NUM_LAYERS: 18
+LOSS:
+  TYPE: 'RLELoss'
+  RESIDUAL: True
+TEST:
+  HEATMAP2COORD: 'coord'
+TRAIN:
+  WORLD_SIZE: 1
+  BATCH_SIZE: 8
+  BEGIN_EPOCH: 0
+  END_EPOCH: 300
+  OPTIMIZER: 'adam'
+  LR: 0.001
+  END_FACTOR: 0.001

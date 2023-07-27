@@ -7,10 +7,12 @@ from easydict import EasyDict
 from .builder import NFDP
 from .layers.real_nvp import RealNVP
 from .layers.Resnet import ResNet
+from .layers.FPN_neck import FPN_neck
 
 
 def nets():
-    return nn.Sequential(nn.Linear(2, 64), nn.LeakyReLU(), nn.Linear(64, 64), nn.LeakyReLU(), nn.Linear(64, 2), nn.Tanh())
+    return nn.Sequential(nn.Linear(2, 64), nn.LeakyReLU(), nn.Linear(64, 64), nn.LeakyReLU(), nn.Linear(64, 2),
+                         nn.Tanh())
 
 
 def nett():
@@ -35,8 +37,6 @@ class Linear(nn.Module):
         if self.bias:
             y = y + self.linear.bias
         return y
-
-
 
 
 @NFDP.register_module
@@ -64,6 +64,15 @@ class RegressFlow(nn.Module):
             101: 2048,
             152: 2048
         }[cfg['NUM_LAYERS']]
+
+        self.decoder_feature_channel = {
+            18: [64, 128, 256, 512],
+            34: [64, 128, 256, 512],
+            50: [256, 512, 1024, 2048],
+            101: [256, 512, 1024, 2048],
+            152: [256, 512, 1024, 2048],
+        }[cfg['NUM_LAYERS']]
+
         self.hidden_list = cfg['HIDDEN_LIST']
 
         model_state = self.preact.state_dict()
@@ -71,11 +80,34 @@ class RegressFlow(nn.Module):
                  if k in self.preact.state_dict() and v.size() == self.preact.state_dict()[k].size()}
         model_state.update(state)
         self.preact.load_state_dict(model_state)
-
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.dropout = nn.Dropout(p=0.05)
+        self.neck = FPN_neck(
+            in_channels=self.decoder_feature_channel,
+            out_channels=self.decoder_feature_channel[0],
+            num_outs=4,
+            downsample_strides=[8, 4, 2, 1]
+        )
+        self.neck_out = nn.Sequential(
+            nn.Conv2d(in_channels=self.decoder_feature_channel[0],
+                      out_channels=self.decoder_feature_channel[0],
+                      kernel_size=3,
+                      stride=1,
+                      padding=1),
+            nn.BatchNorm2d(self.decoder_feature_channel[0]),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=self.decoder_feature_channel[0],
+                      out_channels=self.feature_channel // 256,
+                      kernel_size=1,
+                      stride=1,
+                      padding=0),
+            nn.BatchNorm2d(self.feature_channel // 256),
+            nn.ReLU(),
+        )
+        self.flatten = nn.Flatten()
+        self.avg_pool = nn.AdaptiveAvgPool2d(16)
 
         self.fcs, out_channel = self._make_fc_layer()
-        self.fcs = None
+
         self.fc_coord = Linear(out_channel, self.num_joints * 2)
         self.fc_sigma = Linear(out_channel, self.num_joints * 2, norm=False)
 
@@ -104,9 +136,9 @@ class RegressFlow(nn.Module):
         return nn.Sequential(*fc_layers), input_channel
 
     def _initialize(self):
-        # for m in self.fcs:
-        #     if isinstance(m, nn.Linear):
-        #         nn.init.xavier_uniform_(m.weight, gain=0.01)
+        for m in self.fcs:
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight, gain=0.01)
         for m in self.fc_layers:
             if isinstance(m, nn.Linear):
                 nn.init.xavier_uniform_(m.weight, gain=0.01)
@@ -114,18 +146,20 @@ class RegressFlow(nn.Module):
     def forward(self, x, labels=None):
         BATCH_SIZE = x.shape[0]
 
-        feat = self.preact(x)
-
-        _, _, f_h, f_w = feat.shape
+        feats = self.preact.forward_feat(x)
+        feat = self.neck(feats)
+        feat = self.neck_out(feat)
+        # feat = self.flatten(feat)
+        # _, _, f_h, f_w = feat.shape
         feat = self.avg_pool(feat).reshape(BATCH_SIZE, -1)
-
+        # feat = self.dropout(feat)
         out_coord = self.fc_coord(feat).reshape(BATCH_SIZE, self.num_joints, 2)
         assert out_coord.shape[2] == 2
 
         out_sigma = self.fc_sigma(feat).reshape(BATCH_SIZE, self.num_joints, -1)
 
         # (B, N, 2)
-        pred_pts = out_coord.reshape(BATCH_SIZE, self.num_joints, 2)
+        pred_jts = out_coord.reshape(BATCH_SIZE, self.num_joints, 2)
 
         sigma = out_sigma.reshape(BATCH_SIZE, self.num_joints, -1).sigmoid()
         scores = 1 - sigma
@@ -133,8 +167,8 @@ class RegressFlow(nn.Module):
         scores = torch.mean(scores, dim=2, keepdim=True)
 
         if self.training and labels is not None:
-            gt_uv = labels['target_uv'].reshape(pred_pts.shape)
-            bar_mu = (pred_pts - gt_uv) / sigma
+            gt_uv = labels['target_uv'].reshape(pred_jts.shape)
+            bar_mu = (pred_jts - gt_uv) / sigma
             # (B, K, 2)
             log_phi = self.flow.log_prob(bar_mu.reshape(-1, 2)).reshape(BATCH_SIZE, self.num_joints, 1)
             nf_loss = torch.log(sigma) - log_phi
@@ -142,7 +176,7 @@ class RegressFlow(nn.Module):
             nf_loss = None
 
         output = EasyDict(
-            pred_pts=pred_pts,
+            pred_jts=pred_jts,
             sigma=sigma,
             maxvals=scores.float(),
             nf_loss=nf_loss

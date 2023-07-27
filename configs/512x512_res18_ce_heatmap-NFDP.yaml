@@ -1,0 +1,61 @@
+DATASET:
+  TRAIN:
+    TYPE: 'CE_X_ray'
+    ROOT:  '/home/jackson/Documents/Project_BME/Datasets/face_landmark/'
+    IMG_PREFIX: 'RawImage/Training120'
+    ANN:
+      - '400_senior'
+      - '400_junior'
+    AUG:
+      SHIFT_FACTOR:
+        - 0.15
+        - 0.15
+      ROT_FACTOR: 30
+      SCALE_FACTOR: 0.3
+  VAL:
+    TYPE: 'CE_X_ray'
+    ROOT:  '/home/jackson/Documents/Project_BME/Datasets/face_landmark/'
+    IMG_PREFIX: 'RawImage/Test1Data'
+    ANN:
+      - '400_senior'
+      - '400_junior'
+  TEST:
+    TYPE: 'CE_X_ray'
+    ROOT:  '/home/jackson/Documents/Project_BME/Datasets/face_landmark/'
+    IMG_PREFIX: 'RawImage/Test1Data'
+#     TestAll, Test1Data
+    ANN:
+      - '400_senior'
+      - '400_junior'
+DATA_PRESET:
+  TYPE: 'cephalograms'
+  SIGMA: 3
+  NUM_JOINTS: 19
+  IMAGE_SIZE:
+  - 512
+  - 512
+  HEATMAP_SIZE:
+  - 128
+  - 128
+MODEL:
+  TYPE: 'HeatmapNFR'
+  PRETRAINED:  ''
+  TRY_LOAD: ''
+  NUM_FC_FILTERS:
+  - -1
+  HIDDEN_LIST: -1
+  NUM_LAYERS: 18
+LOSS:
+  TYPE: 'RLELoss'
+  RESIDUAL: True
+TEST:
+  HEATMAP2COORD: 'coord'
+TRAIN:
+  WORLD_SIZE: 2
+  BATCH_SIZE: 8
+  BEGIN_EPOCH: 0
+  END_EPOCH: 300
+  OPTIMIZER: 'adam'
+  LR: 0.0004
+  END_FACTOR: 0.01
+

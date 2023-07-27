@@ -1,0 +1,57 @@
+DATASET:
+  TRAIN:
+    TYPE: 'Hand_X_ray'
+    ROOT:  '/home/jackson/Documents/Project_BME/Datasets/hand_x_ray/'
+    IMG_PREFIX: 'Images'
+    SPLIT: 'cv/set1/train.txt'
+    ANN: 'all.csv'
+    AUG:
+      SHIFT_FACTOR:
+        - 0.15
+        - 0.15
+      ROT_FACTOR: 30
+      SCALE_FACTOR: 0.3
+  VAL:
+    TYPE: 'Hand_X_ray'
+    ROOT:  '/home/jackson/Documents/Project_BME/Datasets/hand_x_ray/'
+    IMG_PREFIX: 'Images'
+    SPLIT: 'cv/set1/test.txt'
+    ANN: 'all.csv'
+  TEST:
+    TYPE: 'Hand_X_ray'
+    ROOT: '/home/jackson/Documents/Project_BME/Datasets/hand_x_ray/'
+    IMG_PREFIX: 'Images'
+    SPLIT: 'cv/set1/test.txt'
+    ANN: 'all.csv'
+DATA_PRESET:
+  TYPE: 'cephalograms'
+  SIGMA: 3
+  NUM_JOINTS: 37
+  IMAGE_SIZE:
+  - 512
+  - 512
+  HEATMAP_SIZE:
+  - 128
+  - 128
+MODEL:
+  TYPE: 'HeatmapNFR'
+  PRETRAINED:  ''
+  TRY_LOAD: ''
+  NUM_FC_FILTERS:
+  - -1
+  HIDDEN_LIST: -1
+  NUM_LAYERS: 18
+LOSS:
+  TYPE: 'RLELoss'
+  RESIDUAL: True
+TEST:
+  HEATMAP2COORD: 'coord'
+TRAIN:
+  WORLD_SIZE: 2
+  BATCH_SIZE: 8
+  BEGIN_EPOCH: 0
+  END_EPOCH: 200
+  OPTIMIZER: 'adam'
+  LR: 0.0008
+  END_FACTOR: 0.3
+
