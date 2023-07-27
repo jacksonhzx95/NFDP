@@ -167,7 +167,7 @@ class CE_X_ray(data.Dataset):
         target = self.transformation(img, label)
 
         img = target.pop('image')
-
+        print(img.shape)
         return img, target, img_id
 
     def __len__(self):
