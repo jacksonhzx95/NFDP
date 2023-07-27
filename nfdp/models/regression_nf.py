@@ -4,7 +4,7 @@ import torch.distributions as distributions
 import torch.nn as nn
 from easydict import EasyDict
 
-from .builder import SPPE
+from .builder import NFDP
 from .layers.real_nvp import RealNVP
 from .layers.Resnet import ResNet
 
@@ -39,7 +39,7 @@ class Linear(nn.Module):
 
 
 
-@SPPE.register_module
+@NFDP.register_module
 class RegressFlow(nn.Module):
     def __init__(self, norm_layer=nn.BatchNorm2d, **cfg):
         super(RegressFlow, self).__init__()
@@ -125,7 +125,7 @@ class RegressFlow(nn.Module):
         out_sigma = self.fc_sigma(feat).reshape(BATCH_SIZE, self.num_joints, -1)
 
         # (B, N, 2)
-        pred_jts = out_coord.reshape(BATCH_SIZE, self.num_joints, 2)
+        pred_pts = out_coord.reshape(BATCH_SIZE, self.num_joints, 2)
 
         sigma = out_sigma.reshape(BATCH_SIZE, self.num_joints, -1).sigmoid()
         scores = 1 - sigma
@@ -133,8 +133,8 @@ class RegressFlow(nn.Module):
         scores = torch.mean(scores, dim=2, keepdim=True)
 
         if self.training and labels is not None:
-            gt_uv = labels['target_uv'].reshape(pred_jts.shape)
-            bar_mu = (pred_jts - gt_uv) / sigma
+            gt_uv = labels['target_uv'].reshape(pred_pts.shape)
+            bar_mu = (pred_pts - gt_uv) / sigma
             # (B, K, 2)
             log_phi = self.flow.log_prob(bar_mu.reshape(-1, 2)).reshape(BATCH_SIZE, self.num_joints, 1)
             nf_loss = torch.log(sigma) - log_phi
@@ -142,7 +142,7 @@ class RegressFlow(nn.Module):
             nf_loss = None
 
         output = EasyDict(
-            pred_jts=pred_jts,
+            pred_pts=pred_pts,
             sigma=sigma,
             maxvals=scores.float(),
             nf_loss=nf_loss

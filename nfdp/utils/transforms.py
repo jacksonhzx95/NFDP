@@ -368,7 +368,7 @@ class get_coord(object):
 
     def __call__(self, output, idx):
         if self.type == 'coord':
-            pred_jts = output.pred_jts[idx]
+            pred_jts = output.pred_pts[idx]
             pred_scores = output.maxvals[idx]
             return heatmap_to_coord(pred_jts, pred_scores, self.norm_size)
         elif self.type == 'heatmap':

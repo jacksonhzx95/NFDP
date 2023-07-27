@@ -3,7 +3,7 @@ from torch import nn
 from nfdp.utils import Registry, build_from_cfg, retrieve_from_cfg
 
 
-SPPE = Registry('sppe')
+NFDP = Registry('nfdp')
 LOSS = Registry('loss')
 DATASET = Registry('dataset')
 
@@ -18,13 +18,13 @@ def build(cfg, registry, default_args=None):
         return build_from_cfg(cfg, registry, default_args)
 
 
-def build_sppe(cfg, preset_cfg, **kwargs):
+def build_nfdp(cfg, preset_cfg, **kwargs):
     default_args = {
         'PRESET': preset_cfg,
     }
     for key, value in kwargs.items():
         default_args[key] = value
-    return build(cfg, SPPE, default_args=default_args)
+    return build(cfg, NFDP, default_args=default_args)
 
 
 def build_loss(cfg):

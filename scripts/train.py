@@ -151,7 +151,7 @@ def main_worker(gpu, opt, cfg):
     writer.close()
 
 def preset_model(cfg):
-    model = builder.build_sppe(cfg.MODEL, preset_cfg=cfg.DATA_PRESET)
+    model = builder.build_nfdp(cfg.MODEL, preset_cfg=cfg.DATA_PRESET)
 
     if cfg.MODEL.PRETRAINED:
         logger.info(f'Loading model from {cfg.MODEL.PRETRAINED}...')

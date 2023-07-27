@@ -79,7 +79,7 @@ def calc_accuracy(output, target):
 
 def calc_coord_accuracy(output, target, hm_shape, num_joints=None):
     """Calculate integral coordinates accuracy."""
-    coords = output.pred_jts.detach().cpu().numpy()
+    coords = output.pred_pts.detach().cpu().numpy()
     coords = coords.astype(float)
 
     labels = target['target_uv']

@@ -33,7 +33,7 @@ def main_worker(gpu, opt, cfg):
 
     torch.backends.cudnn.benchmark = True
 
-    m = builder.build_sppe(cfg.MODEL, preset_cfg=cfg.DATA_PRESET)
+    m = builder.build_nfdp(cfg.MODEL, preset_cfg=cfg.DATA_PRESET)
 
     print(f'Loading model from {opt.checkpoint}...')
     m.load_state_dict(torch.load(opt.checkpoint, map_location='cpu'), strict=True)
