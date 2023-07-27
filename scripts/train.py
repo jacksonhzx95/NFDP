@@ -17,7 +17,6 @@ from nfdp.utils.env import init_dist
 from nfdp.utils.metrics import NullWriter
 from nfdp.utils.transforms import get_coord
 num_gpu = torch.cuda.device_count()
-from torch.utils.tensorboard import SummaryWriter
 
 
 def _init_fn(worker_id):
@@ -68,8 +67,7 @@ def main_worker(gpu, opt, cfg):
     else:
         null_writer = NullWriter()
         sys.stdout = null_writer
-    # create a summary writer
-    writer = SummaryWriter(f'tesonrboard/log/{os.path.basename(opt.exp_id)}')
+
     logger.info('******************************')
     logger.info(opt)
     logger.info('******************************')
@@ -116,8 +114,6 @@ def main_worker(gpu, opt, cfg):
         # Training
         loss, acc = train(opt, cfg, train_loader, m, criterion, optimizer)
         logger.epochInfo('Train', opt.epoch, loss, acc)
-        writer.add_scalar('training loss', loss, opt.epoch)
-        writer.add_scalar('training accuracy', acc, opt.epoch)
         lr_scheduler.step()
 
         if (i + 1) % opt.snapshot == 0:
@@ -148,7 +144,6 @@ def main_worker(gpu, opt, cfg):
         torch.distributed.barrier()  # Sync
 
     torch.save(m.module.state_dict(), './exp/{}-{}/final.pth'.format(opt.exp_id, cfg.FILE_NAME))
-    writer.close()
 
 def preset_model(cfg):
     model = builder.build_nfdp(cfg.MODEL, preset_cfg=cfg.DATA_PRESET)
