@@ -145,6 +145,7 @@ class Transform(object):
 
     def __call__(self, src, label):
         gt_joints = label['joints']
+        print(src.shape)
         # if self._train:
         #     src, gt_joints = self.process(src, gt_joints)
         # src = np.clip(src, a_min=0., a_max=255.)
@@ -184,7 +185,7 @@ class Transform(object):
         inp_h, inp_w = input_size
         trans = get_affine_transform(center, scale, r, [inp_w, inp_h], shift=sft)
         img = cv2.warpAffine(src, trans, (int(inp_w), int(inp_h)), flags=cv2.INTER_LINEAR)
-
+        print(img.shape)
         # deal with landmark visibility this part contains problem
         for i in range(self.num_joints):
             if joints[i, 0, 1] > 0.0:
