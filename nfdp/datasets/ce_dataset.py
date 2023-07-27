@@ -6,7 +6,7 @@ import cv2
 from scipy.io import loadmat
 import numpy as np
 from nfdp.models.builder import DATASET
-from nfdp.utils.presets import SimpleTransform, Transform, CETransform
+from nfdp.utils.presets import Transform
 import albumentations as A
 
 def update_config(config_file):
@@ -42,19 +42,8 @@ def load_gt_pts(annopath):
     return pts
 
 
-'''def _check_load_keypoints(self, coco, entry):
 
-            if self._check_centers and self._train:
-                bbox_center, bbox_area = self._get_box_center_area((xmin, ymin, xmax, ymax))
-                kp_center, num_vis = self._get_keypoints_center_count(joints_3d)
-                ks = np.exp(-2 * np.sum(np.square(bbox_center - kp_center)) / bbox_area)
-                if (num_vis / 80.0 + 47 / 80.0) > ks:
-                    continue
-
-'''
-
-
-def scoliosis_pts_process(pts):
+def pts_process(pts):
     joints_3d = np.zeros((len(pts), 2, 2), dtype=np.float32)
     for i in range(len(pts)):
         joints_3d[i, 0, 0] = pts[i][0]
@@ -98,18 +87,12 @@ class CE_X_ray(data.Dataset):
         self.img_dir = os.path.join(self._root, self._img_prefix)
 
         if 'AUG' in cfg.keys():
-            self._flip = cfg['AUG']['FLIP']
             self._scale_factor = cfg['AUG']['SCALE_FACTOR']
             self._rot = cfg['AUG']['ROT_FACTOR']
             self._shift = cfg['AUG']['SHIFT_FACTOR']
-            self.num_joints_half_body = cfg['AUG']['NUM_JOINTS_HALF_BODY']
-            self.prob_half_body = cfg['AUG']['PROB_HALF_BODY']
         else:
-            self._flip = 0
             self._scale_factor = 0
             self._rot = 0
-            self.num_joints_half_body = -1
-            self.prob_half_body = -1
             self._shift = (0, 0)
 
         self._input_size = self._preset_cfg['IMAGE_SIZE']
@@ -125,47 +108,17 @@ class CE_X_ray(data.Dataset):
                                10, 11, 12,)
         self.lower_body_ids = (13, 14, 15, 16, 17, 18,)
         self._loss_type = cfg['heatmap2coord']
-        if self._preset_cfg['TYPE'] == 'simple':
-            self.transformation = SimpleTransform(
-                self, scale_factor=self._scale_factor,
-                input_size=self._input_size,
-                output_size=self._output_size,
-                rot=self._rot, sigma=self._sigma,
-                train=self._train, loss_type=self._loss_type)
-        elif self._preset_cfg['TYPE'] == 'scoliosis':
-            self.transformation = Transform(
-                self, scale_factor=self._scale_factor,
-                input_size=self._input_size,
-                output_size=self._output_size,
-                flip=self._flip,
-                rot=self._rot, sigma=self._sigma,
-                train=self._train, loss_type=self._loss_type, shift=self._shift)
-        elif self._preset_cfg['TYPE'] == 'cephalograms':
-            self.transformation = CETransform(
-                self, scale_factor=self._scale_factor,
-                input_size=self._input_size,
-                output_size=self._output_size,
-                flip=self._flip,
-                rot=self._rot, sigma=self._sigma,
-                train=self._train, loss_type=self._loss_type, shift=self._shift)
-        else:
-            raise NotImplementedError
+
+        self.transformation = Transform(
+            self, scale_factor=self._scale_factor,
+            input_size=self._input_size,
+            output_size=self._output_size,
+            rot=self._rot, sigma=self._sigma,
+            train=self._train, loss_type=self._loss_type, shift=self._shift)
 
         self.img_ids = sorted(os.listdir(self.img_dir))
 
-    '''
-    def __init__(self, data_dir, phase, input_h=None, input_w=None, down_ratio=4):
-        super(BaseDataset, self).__init__()
-        self.data_dir = data_dir
-        self.phase = phase
-        self.input_h = input_h
-        self.input_w = input_w
-        self.down_ratio = down_ratio
-        self.class_name = ['__background__', 'cell']
-        self.num_classes = 68
-        self.img_dir = os.path.join(data_dir, 'data', self.phase)
-        self.img_ids = sorted(os.listdir(self.img_dir))
-    '''
+
 
     def load_image(self, index):
         image = cv2.imread(os.path.join(self.img_dir, self.img_ids[index]))
@@ -195,26 +148,11 @@ class CE_X_ray(data.Dataset):
         pts1 = np.array(pts1)
         pts2 = np.array(pts2)
         pts = (pts1 + pts2) / 2
-        pts_3d = scoliosis_pts_process(pts)
-        return pts_3d
+        pts_ed = pts_process(pts)
+        return pts_ed
 
     def __getitem__(self, index):
-        '''
-        img_path = self._items[idx]
-        img_id = int(os.path.splitext(os.path.basename(img_path))[0])
 
-        # load ground truth, including bbox, keypoints, image size
-        label = copy.deepcopy(self._labels[idx])
-
-        img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
-
-        # transform ground truth into training label and apply data augmentation
-        target = self.transformation(img, label)
-
-        img = target.pop('image')
-        bbox = target.pop('bbox')
-        return img, target, img_id, bbox
-        '''
         '''
         Parameters
         ----------
@@ -244,33 +182,5 @@ class CE_X_ray(data.Dataset):
         return len(self.img_ids)
 
 
-# import numpy as np
-
-if __name__ == '__main__':
-    DATASET_PATH = '/home/jackson/Documents/Project_BME/Datasets/face_landmark/'
-    content = open(os.path.join(DATASET_PATH, 'mini_train_input.bin'), 'rb').read()
-    imgs = np.frombuffer(content, dtype='uint16').reshape((-1, 256, 256))
-    content = open(os.path.join(DATASET_PATH, 'mini_train_gt.bin'), 'rb').read()
-    gts = np.frombuffer(content, dtype='uint16').reshape((-1, 256, 256))
-
-    # spilit to train/val
-    np.random.seed(2333)
-    indices = np.random.permutation(imgs.shape[0])
-    train_idx, val_idx = indices[500:], indices[:500]
-    np.random.seed(None)
-    train_img = imgs[train_idx, :, :]
-    train_gt = gts[train_idx, :, :]
-    val_img = imgs[val_idx, :, :]
-    val_gt = gts[val_idx, :, :]
-
-    fout = open('dataset/burst_raw/mini_train_input.bin', 'wb')
-    fout.write(train_img.tobytes())
-    fout = open('dataset/burst_raw/mini_train_gt.bin', 'wb')
-    fout.write(train_gt.tobytes())
-
-    fout = open('dataset/burst_raw/mini_val_input.bin', 'wb')
-    fout.write(val_img.tobytes())
-    fout = open('dataset/burst_raw/mini_val_gt.bin', 'wb')
-    fout.write(val_gt.tobytes())
 
 

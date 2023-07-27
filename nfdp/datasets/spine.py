@@ -9,7 +9,7 @@ from scipy.io import loadmat
 import numpy as np
 from torch.utils.data import DataLoader
 from nfdp.models.builder import DATASET
-from nfdp.utils.presets import SimpleTransform, Transform
+from nfdp.utils.presets import Transform
 
 
 def update_config(config_file):
@@ -74,7 +74,6 @@ class Spine_X_ray(data.Dataset):
         self._train = train
 
         self.img_dir = os.path.join(self._root, self._img_prefix)
-        # self.label_dir =os.path.join(self._root, self._ann_file)
         if 'AUG' in cfg.keys():
             self._scale_factor = cfg['AUG']['SCALE_FACTOR']
             self._rot = cfg['AUG']['ROT_FACTOR']
@@ -107,24 +106,8 @@ class Spine_X_ray(data.Dataset):
 
         self.img_ids = sorted(os.listdir(self.img_dir))
 
-    '''
-    def __init__(self, data_dir, phase, input_h=None, input_w=None, down_ratio=4):
-        super(BaseDataset, self).__init__()
-        self.data_dir = data_dir
-        self.phase = phase
-        self.input_h = input_h
-        self.input_w = input_w
-        self.down_ratio = down_ratio
-        self.class_name = ['__background__', 'cell']
-        self.num_classes = 68
-        self.img_dir = os.path.join(data_dir, 'data', self.phase)
-        self.img_ids = sorted(os.listdir(self.img_dir))
-    '''
-
     def load_image(self, index):
         image = cv2.imread(os.path.join(self.img_dir, self.img_ids[index]))
-        # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        # image = np.transpose(image, (2, 0, 1))
         return image
 
     def load_annoFolder(self, img_id):
@@ -134,26 +117,10 @@ class Spine_X_ray(data.Dataset):
         img_id = self.img_ids[index]
         annoFolder = self.load_annoFolder(img_id)
         pts = load_gt_pts(annoFolder)
-        pts_3d = spine_pts_process(pts)
-        return pts_3d
+        pts_ed = spine_pts_process(pts)
+        return pts_ed
 
     def __getitem__(self, index):
-        '''
-        img_path = self._items[idx]
-        img_id = int(os.path.splitext(os.path.basename(img_path))[0])
-
-        # load ground truth, including bbox, keypoints, image size
-        label = copy.deepcopy(self._labels[idx])
-
-        img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
-
-        # transform ground truth into training label and apply data augmentation
-        target = self.transformation(img, label)
-
-        img = target.pop('image')
-        bbox = target.pop('bbox')
-        return img, target, img_id, bbox
-        '''
         '''
         Parameters
         ----------

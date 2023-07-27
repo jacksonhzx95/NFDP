@@ -8,7 +8,7 @@ from .utils.config import update_config
 
 
 
-parser = argparse.ArgumentParser(description='Residual Log-Likehood')
+parser = argparse.ArgumentParser(description='Normalizing Flow-based Distribution Prior')
 
 "----------------------------- Experiment options -----------------------------"
 parser.add_argument('--cfg',
@@ -38,16 +38,6 @@ parser.add_argument('--seed', default=42, type=int,
                     help='random seed')
 
 "----------------------------- Log options -----------------------------"
-parser.add_argument('--flip-test',
-                    default=False,
-                    dest='flip_test',
-                    help='flip test',
-                    action='store_true')
-parser.add_argument('--flip-shift',
-                    default=False,
-                    dest='flip_shift',
-                    help='flip shift',
-                    action='store_true')
 parser.add_argument('--valid-batch',
                     help='validation batch size',
                     type=int)
@@ -66,7 +56,6 @@ opt.world_size = cfg.TRAIN.WORLD_SIZE
 opt.work_dir = './exp/{}-{}/'.format(opt.exp_id, cfg_file_name)
 opt.gpus = [i for i in range(torch.cuda.device_count())]
 opt.device = torch.device("cuda:" + str(opt.gpus[0]) if opt.gpus[0] >= 0 else "cpu")
-# opt.device = torch.device("cpu")
 
 if not os.path.exists("./exp/{}-{}".format(opt.exp_id, cfg_file_name)):
     os.makedirs("./exp/{}-{}".format(opt.exp_id, cfg_file_name), exist_ok=True)

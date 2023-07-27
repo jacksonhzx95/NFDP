@@ -1,13 +1,10 @@
 import random
-
 import cv2
 import numpy as np
 import torch
-
 from ..util import get_center_scale
-from ..transforms import (affine_transform, get_affine_transform, im_to_torch)
-
-from ..transform import Compose, ConvertImgFloat, PhotometricDistort, RandomSampleCrop
+from ..transforms import affine_transform, get_affine_transform, im_to_torch, Compose, \
+    ConvertImgFloat, PhotometricDistort, RandomSampleCrop
 
 
 class Preprocessing(object):
@@ -23,7 +20,7 @@ class Preprocessing(object):
 
 
 class Transform(object):
-    """Generation of cropped input person and pose heatmaps from SimplePose.
+    """Generation of cropped input and heatmaps from SimplePose.
 
     Parameters
     ----------
@@ -31,7 +28,6 @@ class Transform(object):
         A tensor with shape: `(3, h, w)`.
     label: dict
         A dictionary with 4 keys:
-            `bbox`: [xmin, ymin, xmax, ymax]
             `joints_3d`: numpy.ndarray with shape: (n_joints, 2),
                     including position and visible flag
             `width`: image width
@@ -187,13 +183,12 @@ class Transform(object):
             sft = np.array([0, 0], dtype=np.float32)
 
         joints = gt_joints
-        # flip
 
         inp_h, inp_w = input_size
         trans = get_affine_transform(center, scale, r, [inp_w, inp_h], shift=sft)
         img = cv2.warpAffine(src, trans, (int(inp_w), int(inp_h)), flags=cv2.INTER_LINEAR)
 
-        # deal with joints visibility this part contains problem
+        # deal with landmark visibility this part contains problem
         for i in range(self.num_joints):
             if joints[i, 0, 1] > 0.0:
                 joints[i, 0:2, 0] = affine_transform(joints[i, 0:2, 0], trans)
