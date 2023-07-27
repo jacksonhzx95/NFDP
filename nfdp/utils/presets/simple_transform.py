@@ -32,8 +32,6 @@ class Transform(object):
                     including position and visible flag
             `width`: image width
             `height`: image height
-    dataset:
-        The dataset to be transformed, must include `joint_pairs` property for flipping.
     scale_factor: int
         Scale augmentation.
     input_size: tuple
@@ -49,7 +47,6 @@ class Transform(object):
     def __init__(self, dataset, scale_factor,
                  input_size, output_size, rot, sigma,
                  train, loss_type='heatmap', shift=(0, 0)):
-        self._joint_pairs = dataset.joint_pairs
         self._scale_factor = scale_factor
         self._rot = rot
         self.shift = shift
