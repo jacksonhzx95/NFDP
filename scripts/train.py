@@ -125,12 +125,12 @@ def main_worker(gpu, opt, cfg):
                 overview, mean = validate(m, opt, cfg, heatmap_to_coord)
 
                 # det_AP = validate(m, opt, cfg, heatmap_to_coord)
-                if cfg.DATA_PRESET.TYPE is 'spine':
+                if cfg.DATA_PRESET.TYPE == 'spine':
                     logger.info(f'##### Epoch {opt.epoch} | pe_mean: {mean}; MAPE: {overview}#####')
-                elif cfg.DATA_PRESET.TYPE is 'cephalograms':
+                elif cfg.DATA_PRESET.TYPE == 'cephalograms':
                     logger.info(f'##### Epoch {opt.epoch} | ;')
                     logger.info(overview)
-                elif cfg.DATA_PRESET.TYPE is 'hand':
+                elif cfg.DATA_PRESET.TYPE == 'hand':
                     logger.info(f'##### Epoch {opt.epoch} | ;')
                     logger.info(overview)
 
