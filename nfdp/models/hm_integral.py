@@ -109,13 +109,13 @@ class HeatmapIntegral(nn.Module):
 
 
         # (B, N, 2)
-        pred_jts = out_coord.reshape(BATCH_SIZE, self.num_joints, 2)
-        scores = 1 - pred_jts
+        pred_pts = out_coord.reshape(BATCH_SIZE, self.num_joints, 2)
+        scores = 1 - pred_pts
 
         scores = torch.mean(scores, dim=2, keepdim=True)
 
         output = EasyDict(
-            pred_jts=pred_jts,
+            pred_pts=pred_pts,
             maxvals=scores.float(),
         )
 

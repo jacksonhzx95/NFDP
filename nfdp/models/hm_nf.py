@@ -155,16 +155,16 @@ class HeatmapNFR(nn.Module):
         out_sigma = self.fc_sigma(feats_for_sigma).reshape(BATCH_SIZE, self.num_joints, -1)
 
         # (B, N, 2)
-        pred_jts = out_coord.reshape(BATCH_SIZE, self.num_joints, 2)
-        # pred_jts = out_coord
+        pred_pts = out_coord.reshape(BATCH_SIZE, self.num_joints, 2)
+        # pred_pts = out_coord
         sigma = out_sigma.reshape(BATCH_SIZE, self.num_joints, -1).sigmoid()
         scores = 1 - sigma
 
         scores = torch.mean(scores, dim=2, keepdim=True)
 
         if self.training and labels is not None:
-            gt_uv = labels['target_uv'].reshape(pred_jts.shape)
-            bar_mu = (pred_jts - gt_uv) / sigma
+            gt_uv = labels['target_uv'].reshape(pred_pts.shape)
+            bar_mu = (pred_pts - gt_uv) / sigma
             # (B, K, 2)
             log_phi = self.flow.log_prob(bar_mu.reshape(-1, 2)).reshape(BATCH_SIZE, self.num_joints, 1)
             nf_loss = torch.log(sigma) - log_phi
@@ -172,12 +172,12 @@ class HeatmapNFR(nn.Module):
             nf_loss = None
 
         output = EasyDict(
-            pred_jts=pred_jts,
+            pred_pts=pred_pts,
             heatmap=output_hm,
             sigma=sigma,
             maxvals=scores.float(),
             nf_loss=nf_loss
         )
         # for shap test only
-        # pred_jts = out_coord
-        return output # pred_jts
+        # pred_pts = out_coord
+        return output # pred_pts
