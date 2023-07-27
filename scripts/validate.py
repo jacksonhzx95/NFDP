@@ -46,12 +46,12 @@ def main_worker(gpu, opt, cfg):
     with torch.no_grad():
 
         overview, mean = validate(m, opt, cfg, heatmap_to_coord, opt.valid_batch)
-        if cfg.DATA_PRESET.TYPE is 'spine':
+        if cfg.DATA_PRESET.TYPE == 'spine':
             print(f'##### pe_mean: {mean}; MAPE: {overview}#####')
-        elif cfg.DATA_PRESET.TYPE is 'cephalograms':
+        elif cfg.DATA_PRESET.TYPE == 'cephalograms':
             print(overview)
             print(mean)
-        elif cfg.DATA_PRESET.TYPE is 'hand':
+        elif cfg.DATA_PRESET.TYPE == 'hand':
             print(overview)
             print(mean)
 
