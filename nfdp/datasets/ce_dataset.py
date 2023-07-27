@@ -57,9 +57,6 @@ class CE_X_ray(data.Dataset):
     EVAL_JOINTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
                    10, 11, 12, 13, 14, 15, 16, 17, 18]
     num_joints = 19
-    joint_pairs = [[0, 0], [2, 2], [4, 4], [6, 6], [8, 8],
-                   [10, 10], [12, 12], [14, 14], [16, 16], [18, 18]
-                   ]
     joints_name = [
         'L0', 'L1', 'L2', 'L3',
         'L4', 'L5', 'L6', 'L7',
@@ -102,10 +99,6 @@ class CE_X_ray(data.Dataset):
         self._check_centers = False
 
         self.num_class = len(self.CLASSES)
-        # self._loss_type = None
-        self.upper_body_ids = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-                               10, 11, 12,)
-        self.lower_body_ids = (13, 14, 15, 16, 17, 18,)
         self._loss_type = cfg['heatmap2coord']
 
         self.transformation = Transform(
