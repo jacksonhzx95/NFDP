@@ -126,8 +126,23 @@ def calc_coord_accuracy(output, target, hm_shape, num_joints=None):
     else:
         return 0
 
-
 def calc_dist(preds, target, normalize):
+    """Calculate normalized distances"""
+    preds = preds.astype(np.float32)
+    target = target.astype(np.float32)
+    dists = np.zeros((preds.shape[1], preds.shape[0]))
+
+    for n in range(preds.shape[0]):
+        for c in range(preds.shape[1]):
+            if target[n, c, 0] > 1 and target[n, c, 1] > 1:
+                normed_preds = preds[n, c, :] / normalize[n]
+                normed_targets = target[n, c, :] / normalize[n]
+                dists[c, n] = np.linalg.norm(normed_preds - normed_targets)
+            else:
+                dists[c, n] = -1
+
+    return dists
+'''def calc_dist(preds, target, normalize):
     """Calculate normalized distances"""
     preds = preds.astype(np.float32)
     target = target.astype(np.float32)
@@ -142,7 +157,7 @@ def calc_dist(preds, target, normalize):
             dists[c] = -1
 
     return dists
-
+'''
 
 
 

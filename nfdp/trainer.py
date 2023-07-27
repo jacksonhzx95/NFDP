@@ -138,13 +138,13 @@ def validate(m, opt, cfg, heatmap_to_coord, batch_size=1):
         with open(os.path.join(opt.work_dir, 'test_gt_kpt.json'), 'w') as fid:
             json.dump(kpt_json_all, fid)
 
-        if cfg.DATA_PRESET.TYPE is 'spine':
+        if cfg.DATA_PRESET.TYPE == 'spine':
             pe_mean, mape = cal_mape(kpt_json_all, cfg.DATA_PRESET.get('IMAGE_SIZE'))
             return mape, pe_mean
-        elif cfg.DATA_PRESET.TYPE is 'cephalograms':
+        elif cfg.DATA_PRESET.TYPE == 'cephalograms':
             overview, pe_mean = cal_deo_ce(kpt_json_all, cfg.DATA_PRESET.get('IMAGE_SIZE'))
             return overview, pe_mean
-        elif cfg.DATA_PRESET.TYPE is 'hand':
+        elif cfg.DATA_PRESET.TYPE == 'hand':
             overview, pe_mean = cal_deo_hand(kpt_json_all, cfg.DATA_PRESET.get('IMAGE_SIZE'))
             return overview, pe_mean
     else:
