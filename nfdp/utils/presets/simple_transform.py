@@ -10,7 +10,7 @@ from ..transforms import affine_transform, get_affine_transform, im_to_torch, Co
 class Preprocessing(object):
     def __init__(self):
         self.data_aug = Compose([ConvertImgFloat(),
-                                 RandomSampleCrop(min_win=0.75),
+                                 RandomSampleCrop(min_win=0.9),
                                  PhotometricDistort()])
 
     def __call__(self, img, pts):
@@ -151,7 +151,7 @@ class Transform(object):
         # print(src.shape)
         # if self._train:
         #     src, gt_joints = self.process(src, gt_joints)
-        # src = np.clip(src, a_min=0., a_max=255.)
+        src = np.clip(src, a_min=0., a_max=255.)
         imgwidth, imght = label['width'], label['height']
         assert imgwidth == src.shape[1] and imght == src.shape[0]
         self.num_joints = gt_joints.shape[0]
@@ -199,7 +199,7 @@ class Transform(object):
         target_uv, target_uv_weight, target_visible, target_visible_weight = self._integral_target_generator(
             joints.copy(), self.num_joints, inp_h, inp_w)
 
-        img = np.clip(img, a_min=0., a_max=255.)
+        # img = np.clip(img, a_min=0., a_max=255.)
         img = im_to_torch(img)
         img.add_(-0.5)
 
