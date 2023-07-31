@@ -146,7 +146,7 @@ class Transform(object):
     def __call__(self, src, label):
         gt_joints = label['joints']
         if self._train:
-            img, gt_joints = self.process(src, gt_joints)
+            src, gt_joints = self.process(src, gt_joints)
 
         # print(src.shape)
         # if self._train:
