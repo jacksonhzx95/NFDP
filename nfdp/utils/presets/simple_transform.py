@@ -152,6 +152,7 @@ class Transform(object):
         # if self._train:
         #     src, gt_joints = self.process(src, gt_joints)
         src = np.clip(src, a_min=0., a_max=255.)
+        label['width'], label['height'] = src.shape[1], src.shape[0]
         imgwidth, imght = label['width'], label['height']
         assert imgwidth == src.shape[1] and imght == src.shape[0]
         self.num_joints = gt_joints.shape[0]
