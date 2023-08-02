@@ -80,34 +80,34 @@ class RegressFlow(nn.Module):
                  if k in self.preact.state_dict() and v.size() == self.preact.state_dict()[k].size()}
         model_state.update(state)
         self.preact.load_state_dict(model_state)
-        self.dropout = nn.Dropout(p=0.05)
-        self.neck = FPN_neck(
-            in_channels=self.decoder_feature_channel,
-            out_channels=self.decoder_feature_channel[0],
-            num_outs=4,
-            downsample_strides=[8, 4, 2, 1]
-        )
-        self.neck_out = nn.Sequential(
-            nn.Conv2d(in_channels=self.decoder_feature_channel[0],
-                      out_channels=self.decoder_feature_channel[0],
-                      kernel_size=3,
-                      stride=1,
-                      padding=1),
-            nn.BatchNorm2d(self.decoder_feature_channel[0]),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=self.decoder_feature_channel[0],
-                      out_channels=self.feature_channel // 256,
-                      kernel_size=1,
-                      stride=1,
-                      padding=0),
-            nn.BatchNorm2d(self.feature_channel // 256),
-            nn.ReLU(),
-        )
-        self.flatten = nn.Flatten()
-        self.avg_pool = nn.AdaptiveAvgPool2d(16)
-
+        # self.dropout = nn.Dropout(p=0.05)
+        # self.neck = FPN_neck(
+        #     in_channels=self.decoder_feature_channel,
+        #     out_channels=self.decoder_feature_channel[0],
+        #     num_outs=4,
+        #     downsample_strides=[8, 4, 2, 1]
+        # )
+        # self.neck_out = nn.Sequential(
+        #     nn.Conv2d(in_channels=self.decoder_feature_channel[0],
+        #               out_channels=self.decoder_feature_channel[0],
+        #               kernel_size=3,
+        #               stride=1,
+        #               padding=1),
+        #     nn.BatchNorm2d(self.decoder_feature_channel[0]),
+        #     nn.ReLU(),
+        #     nn.Conv2d(in_channels=self.decoder_feature_channel[0],
+        #               out_channels=self.feature_channel // 256,
+        #               kernel_size=1,
+        #               stride=1,
+        #               padding=0),
+        #     nn.BatchNorm2d(self.feature_channel // 256),
+        #     nn.ReLU(),
+        # )
+        # self.flatten = nn.Flatten()
+        # self.avg_pool = nn.AdaptiveAvgPool2d(16)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fcs, out_channel = self._make_fc_layer()
-
+        self.fcs = None
         self.fc_coord = Linear(out_channel, self.num_joints * 2)
         self.fc_sigma = Linear(out_channel, self.num_joints * 2, norm=False)
 
@@ -136,21 +136,21 @@ class RegressFlow(nn.Module):
         return nn.Sequential(*fc_layers), input_channel
 
     def _initialize(self):
-        for m in self.fcs:
-            if isinstance(m, nn.Linear):
-                nn.init.xavier_uniform_(m.weight, gain=0.01)
+        # for m in self.fcs:
+        #     if isinstance(m, nn.Linear):
+        #         nn.init.xavier_uniform_(m.weight, gain=0.01)
         for m in self.fc_layers:
             if isinstance(m, nn.Linear):
                 nn.init.xavier_uniform_(m.weight, gain=0.01)
 
     def forward(self, x, labels=None):
         BATCH_SIZE = x.shape[0]
-
-        feats = self.preact.forward_feat(x)
-        feat = self.neck(feats)
-        feat = self.neck_out(feat)
+        feat = self.preact(x)
+        # feats = self.preact.forward_feat(x)
+        # feat = self.neck(feats)
+        # feat = self.neck_out(feat)
         # feat = self.flatten(feat)
-        # _, _, f_h, f_w = feat.shape
+        _, _, f_h, f_w = feat.shape
         feat = self.avg_pool(feat).reshape(BATCH_SIZE, -1)
         # feat = self.dropout(feat)
         out_coord = self.fc_coord(feat).reshape(BATCH_SIZE, self.num_joints, 2)
