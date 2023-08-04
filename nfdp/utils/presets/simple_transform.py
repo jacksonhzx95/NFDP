@@ -67,9 +67,9 @@ class Transform(object):
     def test_transform(self, src):
 
         center, scale = get_center_scale(
-            self.imgwidth, self.imght, self._aspect_ratio, scale_mult=1.0)
+            self.imgwidth, self.imght, self._aspect_ratio, scale_mult=1.25)
 
-        scale = scale * 1.25
+        scale = scale * 1.0
 
         input_size = self._input_size
         inp_h, inp_w = input_size
