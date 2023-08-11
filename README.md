@@ -1,7 +1,7 @@
 # Landmark Localization from Medical Images with Generative Distribution Prior
 
 
-> Zixun Huang, Rui Zhao, Frank H.F. Leung, Sunetra Banerjee, Kin-Man Lam, Yong-Ping Zheng, Sai Ho Lin   
+> Zixun Huang, Rui Zhao, Frank H.F. Leung, Sunetra Banerjee, Kin-Man Lam, Yong-Ping Zheng, Sai Ho Ling   
 
 <div align="center">
     <img src="NFDP.png", width="800" alt><br>
