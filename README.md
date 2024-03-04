@@ -87,3 +87,20 @@ python setup.py develop
 ``` bash
 ./scripts/validate_ce.sh ./configs/512x512_res18_ce_heatmap-NFDP.yaml ./path/to/checkpoint.pth
 ```
+
+## Citation
+
+if you found my paper and code helpful, please consider citing: 
+``` bash
+@ARTICLE{10453619,
+  author={Huang, Zixun and Zhao, Rui and Leung, Frank H.F. and Banerjee, Sunetra and Lam, Kin-Man and Zheng, Yong-Ping and Ling, Sai Ho},
+  journal={IEEE Transactions on Medical Imaging}, 
+  title={Landmark Localization from Medical Images with Generative Distribution Prior}, 
+  year={2024},
+  volume={},
+  number={},
+  pages={1-1},
+  keywords={Heating systems;Location awareness;Biomedical imaging;Task analysis;Training;Estimation;Detectors;landmark localization;normalizing flows;density estimation;regression;heatmap-based localization},
+  doi={10.1109/TMI.2024.3371948}}
+```
+
